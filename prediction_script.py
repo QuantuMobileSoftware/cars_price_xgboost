@@ -49,17 +49,17 @@ target = dataset[4].copy()
 data = dataset.drop([4], 1).copy()
 
 train_data, test_data, train_target, test_target = train_test_split(data, target, test_size=0.2, random_state=42)
-
+print sum(train_target)/len(train_target)
+# #
+# # run xgboost
+# #
+# gbm = xgb.XGBClassifier(max_depth=3, n_estimators=300, learning_rate=0.05).fit(train_data, train_target)
 #
-# run xgboost
+# preds = gbm.predict(test_data)
 #
-gbm = xgb.XGBClassifier(max_depth=3, n_estimators=300, learning_rate=0.05).fit(train_data, train_target)
-
-preds = gbm.predict(test_data)
-
-sum = 0.0
-for i in range(0, len(preds)):
-    sum+=abs(preds[i]-test_target.iloc[i])
-sum/=len(preds)
-
-print sum
+# sum = 0.0
+# for i in range(0, len(preds)):
+#     sum+=abs(preds[i]-test_target.iloc[i])
+# sum/=len(preds)
+#
+# print sum
