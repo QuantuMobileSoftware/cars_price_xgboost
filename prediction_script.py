@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn import preprocessing
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score
 
 dataset = pd.read_csv("autos.csv", header=0, sep=',')
 numeric_columns = [4, 7, 9, 11, 12]
@@ -42,27 +43,30 @@ dataset = pd.get_dummies(dataset)
 # split our dataset to 1. data and target 2. trainee and test
 #
 
-dataset = dataset[:][:10000]
+dataset = pd.DataFrame(dataset[:][:4000])
+
+# kill the outliers
+mean = dataset[4].mean()
+std = dataset[4].std()
+
+inliers = (abs((dataset[4] - mean)) <= 3*std) & (dataset[4] != 0)
+dataset = dataset[inliers]
+#
 
 target = dataset[4].copy()
 data = dataset.drop([4], 1).copy()
 
 train_data, test_data, train_target, test_target = train_test_split(data, target, test_size=0.2, random_state=42)
-print sum(train_target) / len(train_target)
 
 #
 # run xgboost
 #
 
-for x in range(1, 5):
-    for gam in range(0.0, 1.1, 0.25):
-        gbm = xgb.XGBClassifier(max_depth=x, n_estimators=300, learning_rate=0.05, gamma=gam).fit(train_data, train_target)
+for x in range(3, 4):
+    for gam in range(0, 5, 2):
+        gbm = xgb.XGBClassifier(max_depth=x, n_estimators=300, learning_rate=0.05, gamma=float(gam) / 10.0).fit(
+            train_data, train_target)
 
         preds = gbm.predict(test_data)
 
-        sumu = 0.0
-        for i in range(0, len(preds)):
-            sumu += abs(preds[i] - test_target.iloc[i]) / test_target.iloc[i]
-        sumu /= len(preds)
-
-        print "for depth %d on 10 000 examples accurasy is %d \n" % (x, sumu)
+        print "for depth %d on 4 000 examples accuracy is %f \n" % (x, r2_score(test_target, preds))
